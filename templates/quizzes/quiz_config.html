@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Quiz Settings - {{ subcategory.name }} - QuizMaster{% endblock %}
+
+{% block extra_css %}
+<style>
+    .settings-card {
+        border-radius: 1.5rem;
+        border: none;
+    }
+
+    .difficulty-group .btn-check+.btn {
+        padding: 1rem;
+        border-radius: 1rem;
+        border: 2px solid #e5e7eb;
+        background: white;
+        color: #4b5563;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .difficulty-group .btn-check:checked+.btn-outline-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+    }
+
+    .form-select,
+    .form-control {
+        padding: 0.75rem 1rem;
+        border-radius: 0.75rem;
+        border: 1px solid #e5e7eb;
+    }
+
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <a href="{% url 'quizzes:category_list' %}" class="btn btn-link text-decoration-none mb-4 p-0">
+            <i class="fas fa-arrow-left me-2"></i> Back to Categories
+        </a>
+
+        <div class="card shadow-lg settings-card overflow-hidden">
+            <div class="card-header bg-primary text-white p-4 border-0">
+                <h6 class="text-uppercase mb-1 opacity-75 fw-bold">Configuration</h6>
+                <h2 class="mb-0 fw-bold">{{ subcategory.name }}</h2>
+            </div>
+
+            <div class="card-body p-4 p-md-5">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold mb-3">Select Difficulty</label>
+                        <div class="d-flex gap-3 difficulty-group">
+                            {% for radio in form.difficulty %}
+                            <div class="flex-grow-1">
+                                {{ radio.tag }}
+                                <label class="btn btn-outline-primary w-100" for="{{ radio.id_for_label }}">
+                                    {{ radio.choice_label }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold mb-2">{{ form.question_count.label }}</label>
+                            {{ form.question_count }}
+                        </div>
+                    </div>
+
+                    <div class="card bg-light border-0 p-3 mb-4 rounded-4">
+                        <div class="form-check form-switch d-flex justify-content-between align-items-center ps-0">
+                            <label class="form-check-label fw-bold" for="{{ form.timer_enabled.id_for_label }}">
+                                <i class="fas fa-stopwatch me-2 text-primary"></i> {{ form.timer_enabled.label }}
+                            </label>
+                            {{ form.timer_enabled }}
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-5">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill p-3 fw-bold">
+                            Start Quiz <i class="fas fa-play-circle ms-2"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

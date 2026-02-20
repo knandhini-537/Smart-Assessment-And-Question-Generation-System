@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block title %}Choose a Category - QuizMaster{% endblock %}
+
+{% block extra_css %}
+<style>
+    .category-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+    }
+
+    .category-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.1) !important;
+    }
+
+    .category-card.active {
+        border: 2px solid var(--primary-color);
+        background-color: #f0f0ff;
+    }
+
+    .icon-box {
+        width: 60px;
+        height: 60px;
+        background-color: rgba(79, 70, 229, 0.1);
+        color: var(--primary-color);
+        border-radius: 0.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .subcategory-item {
+        transition: all 0.2s;
+        border-radius: 0.5rem;
+    }
+
+    .subcategory-item:hover {
+        background-color: #f3f4f6;
+        padding-left: 1.5rem !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-5 text-center">
+    <div class="col-lg-8 mx-auto">
+        <h1 class="fw-bold mb-3">Explore Categories</h1>
+        <p class="text-secondary lead">Select a category to see available quiz topics.</p>
+    </div>
+</div>
+
+<div class="row g-4 mb-5">
+    {% for category in categories %}
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm category-card" onclick="loadSubcategories({{ category.id }}, this)">
+            <div class="card-body p-4 text-center">
+                <div class="icon-box mx-auto">
+                    <i class="fas {{ category.icon|default:'fa-folder' }}"></i>
+                </div>
+                <h4 class="fw-bold mb-2">{{ category.name }}</h4>
+                <p class="text-secondary small">{{ category.description }}</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<div id="subcategory-section" class="d-none animate__animated animate__fadeIn">
+    <hr class="my-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h3 class="fw-bold mb-4 text-center">Available Quiz Topics</h3>
+            <div id="subcategory-list" class="list-group list-group-flush shadow-sm rounded-4 overflow-hidden">
+                <!-- Subcategories will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function loadSubcategories(categoryId, element) {
+        // Remove active class from all cards
+        document.querySelectorAll('.category-card').forEach(card => card.classList.remove('active'));
+        // Add active class to clicked card
+        element.classList.add('active');
+
+        // Show subcategory section
+        const subSection = document.getElementById('subcategory-section');
+        const subList = document.getElementById('subcategory-list');
+
+        subSection.classList.remove('d-none');
+        subList.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary" role="status"></div></div>';
+
+        fetch(`/quizzes/subcategories/${categoryId}/`)
+            .then(response => response.json())
+            .then(data => {
+                subList.innerHTML = '';
+                if (data.length === 0) {
+                    subList.innerHTML = '<div class="list-group-item p-4 text-center text-secondary">No topics available yet.</div>';
+                    return;
+                }
+                data.forEach(sub => {
+                    const item = document.createElement('a');
+                    item.href = `/quizzes/configure/${sub.id}/`;
+                    item.className = 'list-group-item list-group-item-action p-4 border-0 subcategory-item d-flex justify-content-between align-items-center';
+                    item.innerHTML = `
+                        <div>
+                            <h5 class="mb-1 fw-bold">${sub.name}</h5>
+                            <p class="mb-0 text-secondary small">${sub.description || 'Test your knowledge in this area.'}</p>
+                        </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
+                    `;
+                    subList.appendChild(item);
+                });
+
+                // Scroll to subcategories
+                subSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                subList.innerHTML = '<div class="list-group-item p-4 text-center text-danger">Failed to load topics. Please try again.</div>';
+            });
+    }
+</script>
+{% endblock %}

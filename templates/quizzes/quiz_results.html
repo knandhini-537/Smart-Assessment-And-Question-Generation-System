@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Quiz Results - QuizMaster{% endblock %}
+
+{% block extra_css %}
+<style>
+    .results-card {
+        border-radius: 2rem;
+        border: none;
+        background: white;
+    }
+
+    .score-circle {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 2rem;
+        background: var(--primary-color);
+        color: white;
+        box-shadow: 0 10px 25px rgba(79, 70, 229, 0.2);
+    }
+
+    .percentage {
+        font-size: 2.5rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .score-label {
+        font-size: 0.875rem;
+        font-weight: 600;
+        opacity: 0.9;
+    }
+
+    .stat-card {
+        border-radius: 1.25rem;
+        border: 2px solid #eef2ff;
+        padding: 1.5rem;
+        height: 100%;
+        transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        background-color: #f8fafc;
+    }
+
+    .confetti-icon {
+        font-size: 3rem;
+        color: #fbbf24;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8 text-center">
+        <div class="card shadow-lg results-card p-4 p-md-5 mb-5">
+            <div class="card-body">
+                <div class="confetti-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+
+                <h2 class="fw-bold mb-4">Quiz Completed!</h2>
+                <p class="text-secondary lead mb-5">Great job! Here's how you performed in <span
+                        class="text-primary fw-bold">{{ settings.subcategory_name }}</span>.</p>
+
+                <div class="score-circle">
+                    <div class="percentage">{{ percentage }}%</div>
+                    <div class="score-label">Score</div>
+                </div>
+
+                <div class="row g-4 mb-5">
+                    <div class="col-md-6">
+                        <div class="stat-card">
+                            <h6 class="text-secondary fw-bold text-uppercase small mb-2">Total Questions</h6>
+                            <div class="h3 fw-bold m-0">{{ total }}</div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="stat-card">
+                            <h6 class="text-secondary fw-bold text-uppercase small mb-2">Correct Answers</h6>
+                            <div class="h3 fw-bold m-0 text-success">{{ score }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-column flex-md-row gap-3 justify-content-center">
+                    <a href="{% url 'quizzes:quiz_setup' settings.subcategory_id %}"
+                        class="btn btn-primary px-5 py-3 rounded-pill fw-bold">
+                        <i class="fas fa-redo me-2"></i> Try Again
+                    </a>
+                    <a href="{% url 'quizzes:category_list' %}" class="btn btn-light px-5 py-3 rounded-pill fw-bold">
+                        <i class="fas fa-home me-2"></i> Back to Menu
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

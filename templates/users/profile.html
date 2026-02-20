@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Profile - QuizMaster{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="card-header bg-info text-white py-4 text-center">
+                <h2 class="fw-bold mb-0"><i class="fas fa-id-card me-2"></i>User Profile</h2>
+            </div>
+            <div class="card-body p-4 p-lg-5">
+                <div class="row align-items-center mb-5">
+                    <div class="col-md-4 text-center mb-4 mb-md-0">
+                        <div class="position-relative d-inline-block">
+                            <img src="{{ profile.profile_pic.url }}" alt="Profile Picture"
+                                class="img-thumbnail rounded-circle shadow-sm"
+                                style="width: 180px; height: 180px; object-fit: cover; border: 5px solid #fff;">
+                            <div
+                                class="position-absolute bottom-0 end-0 bg-primary text-white p-2 rounded-circle shadow-sm mb-2 me-2">
+                                <i class="fas fa-camera"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center mb-2">
+                            <h2 class="fw-bold text-dark mb-0 me-3">{{ user.username }}</h2>
+                            <span class="badge bg-primary rounded-pill px-3">Student</span>
+                        </div>
+                        <p class="text-secondary lead mb-3"><i class="fas fa-envelope me-2"></i>{{ user.email }}</p>
+                        <div class="p-3 bg-light rounded-3">
+                            <h6 class="fw-bold text-uppercase small text-muted mb-2">About Me</h6>
+                            <p class="mb-0" id="bio-display">{{ profile.bio|default:"No bio provided. Tell us something
+                                about yourself!" }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-5 opacity-25">
+
+                <div class="card border-0 bg-light rounded-4">
+                    <div class="card-body p-4">
+                        <h4 class="fw-bold mb-4 text-dark"><i class="fas fa-edit me-2"></i>Update Information</h4>
+                        <form method="POST" enctype="multipart/form-data" id="profile-update-form">
+                            {% csrf_token %}
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    {{ u_form|crispy }}
+                                </div>
+                                <div class="col-md-12" id="profile-fields">
+                                    {{ p_form|crispy }}
+                                </div>
+                            </div>
+                            <div class="d-grid mt-4">
+                                <button type="submit" class="btn btn-primary btn-lg fw-bold rounded-pill">
+                                    <i class="fas fa-save me-2"></i>Save Profile Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        console.log("Profile JS loaded");
+
+        // Try multiple ways to find the bio input
+        const bioInput = document.getElementById('id_bio') || document.querySelector('textarea[name="bio"]');
+        const bioDisplay = document.getElementById('bio-display');
+        const defaultText = "No bio provided. Tell us something about yourself!";
+
+        if (bioInput && bioDisplay) {
+            console.log("Bio elements found. Setting up live preview.");
+
+            const updatePreview = function () {
+                const val = bioInput.value.trim();
+                bioDisplay.textContent = val || defaultText;
+            };
+
+            // Listen for input and change events
+            bioInput.addEventListener('input', updatePreview);
+            bioInput.addEventListener('change', updatePreview);
+
+            // Trigger once on load in case there's initial text
+            updatePreview();
+        } else {
+            console.warn("Bio elements not found:", { bioInput, bioDisplay });
+        }
+    });
+</script>
+{% endblock %}

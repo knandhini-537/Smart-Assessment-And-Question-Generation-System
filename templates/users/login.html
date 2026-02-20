@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Login - QuizMaster{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+            <div class="card-header bg-primary text-white text-center py-4">
+                <h3 class="fw-bold mb-0">Welcome Back</h3>
+                <p class="mb-0 opacity-75">Sign in to your account</p>
+            </div>
+            <div class="card-body p-4 p-lg-5">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label fw-semibold">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-secondary">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <input type="text" name="username" id="id_username"
+                                class="form-control bg-light border-start-0 ps-0" placeholder="Enter your username"
+                                required>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="id_password" class="form-label fw-semibold">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-secondary">
+                                <i class="fas fa-lock"></i>
+                            </span>
+                            <input type="password" name="password" id="id_password"
+                                class="form-control bg-light border-start-0 ps-0" placeholder="Enter your password"
+                                required>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg fw-bold rounded-pill">
+                            Sign In
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-4">
+                    <p class="text-secondary small mb-0">
+                        Don't have an account? <a href="{% url 'register' %}"
+                            class="text-primary fw-bold text-decoration-none">Register here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="text-center mt-4">
+            <a href="{% url 'dashboard' %}" class="text-secondary text-decoration-none small">
+                <i class="fas fa-arrow-left me-1"></i> Back to Home
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

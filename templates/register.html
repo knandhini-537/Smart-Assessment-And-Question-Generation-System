@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Register</title>
+<style>
+body{background:#eef2f7;font-family:Arial}
+.card{background:white;width:350px;margin:80px auto;padding:30px;border-radius:10px;box-shadow:0 0 15px #ccc}
+input,button{width:100%;padding:10px;margin:10px 0}
+button{background:#2563eb;color:white;border:none}
+a{text-decoration:none}
+</style>
+</head>
+
+<body>
+<div style="background:#434291;color:white;padding:15px;text-align:center;font-size:22px;">
+        Smart Assessment and Question Generation System
+</div>
+        c
+<div class="card">
+<h2>Create Account</h2>
+
+{% for msg in messages %}
+<p style="color:red">{{msg}}</p>
+{% endfor %}
+
+<form method="POST">
+{% csrf_token %}
+<input name="username" placeholder="Username" required>
+<input name="email" type="email" placeholder="Email" required>
+<input name="password" type="password" placeholder="Password" required>
+<input name="confirm" type="password" placeholder="Confirm Password" required>
+
+<button>Register</button>
+</form>
+
+<p>Already registered? <a href="/login/">Login</a></p>
+</div>
+</body>
+</html>

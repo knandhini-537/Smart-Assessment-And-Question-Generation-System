@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}Quiz: {{ settings.subcategory_name }} - QuizMaster{% endblock %}
+
+{% block extra_css %}
+<style>
+    .question-card {
+        border-radius: 1.5rem;
+        border: none;
+        overflow: hidden;
+    }
+
+    .option-btn {
+        padding: 1.25rem;
+        border-radius: 1rem;
+        border: 2px solid #e5e7eb;
+        background: white;
+        transition: all 0.2s;
+        text-align: left;
+        margin-bottom: 1rem;
+        display: block;
+        width: 100%;
+        font-weight: 500;
+        color: #4b5563;
+        position: relative;
+    }
+
+    .option-btn:hover {
+        border-color: var(--primary-color);
+        background-color: #f8fafc;
+        transform: translateX(10px);
+    }
+
+    .progress-minimal {
+        height: 6px;
+        background-color: #e5e7eb;
+        border-radius: 3px;
+    }
+
+    .progress-minimal-bar {
+        background-color: var(--primary-color);
+        border-radius: 3px;
+        transition: width 0.5s ease;
+    }
+
+    .option-btn.correct {
+        border-color: #10b981;
+        background-color: #ecfdf5;
+        color: #065f46;
+    }
+
+    .option-btn.incorrect {
+        border-color: #ef4444;
+        background-color: #fef2f2;
+        color: #991b1b;
+    }
+
+    .explanation-card {
+        border-radius: 1rem;
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold">Question {{
+                    index }} of {{ total }}</span>
+            </div>
+            <div class="text-secondary font-monospace" id="timer">
+                <i class="fas fa-stopwatch me-1"></i> 00:00
+            </div>
+        </div>
+
+        <div class="progress-minimal mb-5">
+            <div class="progress-minimal-bar" style="width: {% widthratio index total 100 %}%"></div>
+        </div>
+
+        <div class="card shadow-lg question-card mb-4">
+            <div class="card-body p-4 p-md-5">
+                <h3 class="fw-bold mb-5 lh-base">{{ question.text }}</h3>
+
+                <div class="options-container">
+                    {% for option in question.options %}
+                    <button class="option-btn shadow-sm" onclick="selectOption(this, '{{ option|escapejs }}')">
+                        {{ option }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div id="explanation-container" class="card explanation-card border-0 shadow-sm mb-4 p-4">
+            <h5 class="fw-bold mb-2" id="explanation-title"></h5>
+            <p class="text-secondary mb-0" id="explanation-text"></p>
+        </div>
+
+        <div class="d-flex justify-content-end">
+            <button class="btn btn-primary px-5 py-3 rounded-pill fw-bold" id="next-btn" style="display: none;"
+                onclick="goToNext()">
+                Next Question <i class="fas fa-arrow-right ms-2"></i>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let seconds = 0;
+    const timerInterval = setInterval(() => {
+        seconds++;
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        document.getElementById('timer').innerHTML = `<i class="fas fa-stopwatch me-1"></i> ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }, 1000);
+
+    let answered = false;
+
+    function selectOption(btn, answer) {
+        if (answered) return;
+        answered = true;
+
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach(b => b.classList.add('disabled'));
+
+        fetch("{% url 'quizzes:submit_answer' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: JSON.stringify({ answer: answer })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    if (data.is_correct) {
+                        btn.classList.add('correct');
+                        btn.innerHTML += ' <i class="fas fa-check-circle ms-2"></i>';
+                        document.getElementById('explanation-title').innerHTML = '<span class="text-success">Correct!</span>';
+                    } else {
+                        btn.classList.add('incorrect');
+                        btn.innerHTML += ' <i class="fas fa-times-circle ms-2"></i>';
+                        document.getElementById('explanation-title').innerHTML = '<span class="text-danger">Incorrect</span>';
+
+                        // Highlight correct answer
+                        buttons.forEach(b => {
+                            if (b.innerText.trim() === data.correct_answer) {
+                                b.classList.add('correct');
+                            }
+                        });
+                    }
+
+                    document.getElementById('explanation-text').innerText = data.explanation;
+                    document.getElementById('explanation-container').style.display = 'block';
+                    document.getElementById('next-btn').style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while submitting your answer.');
+            });
+    }
+
+    function goToNext() {
+        window.location.href = "{% url 'quizzes:play_quiz' %}";
+    }
+</script>
+{% endblock %}

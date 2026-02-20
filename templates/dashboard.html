@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - QuizMaster{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 text-center py-4 bg-primary text-white rounded-4 shadow-sm mb-4">
+        <h1 class="display-5 fw-bold mb-0">Smart Assessment System</h1>
+        <p class="lead mb-0 opacity-75">Question Generation and Management</p>
+    </div>
+</div>
+
+<div class="alert alert-info border-0 shadow-sm rounded-4 p-4 d-flex align-items-center">
+    <i class="fas fa-user-circle fa-2x me-3 text-primary"></i>
+    <div>
+        <h2 class="h4 mb-1">Welcome, {{ request.user.username }}!</h2>
+        <p class="mb-0 text-secondary">Ready to start your next assessment?</p>
+    </div>
+</div>
+
+<div class="row mt-4 g-4">
+    {% if request.user.is_superuser %}
+    <div class="col-md-6">
+        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                        <i class="fas fa-user-shield text-primary"></i>
+                    </div>
+                    <h5 class="card-title fw-bold mb-0">Admin Panel</h5>
+                </div>
+                <p class="card-text text-secondary mb-4">Manage users, quizzes, and system settings from the
+                    administrative interface.</p>
+                <a href="/admin/" class="btn btn-primary rounded-pill px-4">
+                    Open Admin
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="col-md-{% if request.user.is_superuser %}6{% else %}12{% endif %}">
+        <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="bg-danger bg-opacity-10 p-3 rounded-circle me-3">
+                        <i class="fas fa-sign-out-alt text-danger"></i>
+                    </div>
+                    <h5 class="card-title fw-bold mb-0">Account Session</h5>
+                </div>
+                <p class="card-text text-secondary mb-4">Securely sign out of your account when you're finished with
+                    your session.</p>
+                <form action="{% url 'logout' %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger rounded-pill px-4">
+                        Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
