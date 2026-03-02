@@ -3,4 +3,6 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def index(request):
-    return render(request, 'dashboard/index.html')
+    from users.models import UserProfile
+    profile, created = UserProfile.objects.get_or_create(user=request.user)
+    return render(request, 'dashboard/index.html', {'profile': profile})

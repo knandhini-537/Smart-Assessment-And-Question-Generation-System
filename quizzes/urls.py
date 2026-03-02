@@ -14,4 +14,7 @@ urlpatterns = [
     path('play/', views.play_quiz, name='play_quiz'),
     path('submit-answer/', views.submit_answer, name='submit_answer'),
     path('results/', views.quiz_results, name='quiz_results'),
+    path('progress/', views.user_progress, name='user_progress'),
+    path('leaderboard/', views.leaderboard, name='leaderboard'),
+    path('ai-suggest-topics/<int:category_id>/', views.ai_generate_topics, name='ai_suggest_topics'),
 ]

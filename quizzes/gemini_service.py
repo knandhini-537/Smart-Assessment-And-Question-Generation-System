@@ -2,6 +2,10 @@ import os
 import json
 import google.generativeai as genai
 from django.conf import settings
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Configure Gemini
 api_key = os.getenv("GOOGLE_API_KEY")
@@ -14,9 +18,7 @@ def generate_quiz_questions(topic, difficulty, count):
     Count: Number of questions
     """
     
-    # Initialize the model
-    model = genai.GenerativeModel('gemini-2.5-flash',
-                                  generation_config={"response_mime_type": "application/json"})
+    model_name = 'models/gemini-2.0-flash-lite-001'
     
     prompt = f"""
     Generate a quiz about {topic}.
@@ -34,9 +36,29 @@ def generate_quiz_questions(topic, difficulty, count):
     """
 
     try:
-        response = model.generate_content(prompt)
+        model = genai.GenerativeModel(model_name,
+                                      generation_config={"response_mime_type": "application/json"})
+        
+        print(f"Generating content for topic: {topic} using {model_name}...")
+        
+        # Simple retry logic for 429
+        import time
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = model.generate_content(prompt)
+                break
+            except Exception as e:
+                if "429" in str(e) and attempt < max_retries - 1:
+                    print(f"Quota exceeded. Retrying in {2**(attempt+1)} seconds...")
+                    time.sleep(2**(attempt+1))
+                else:
+                    raise e
+                    
+        print("Response received from Gemini API.")
         
         content = response.text
+        print(f"Content: {content}")
         data = json.loads(content)
         
         if "questions" in data:
@@ -47,9 +69,48 @@ def generate_quiz_questions(topic, difficulty, count):
             
     except Exception as e:
         import traceback
-        traceback.print_exc()
-        print(f"Error calling Gemini API: {e}")
+        error_msg = str(e)
+        if "404" in error_msg:
+            print(f"CRITICAL ERROR: Model '{model_name}' not found. Please check your API key permissions or model name.")
+        elif "429" in error_msg:
+            print(f"CRITICAL ERROR: API Quota exceeded. Please wait a minute or check your billing/limits.")
+        else:
+            traceback.print_exc()
+            print(f"Error calling Gemini API: {e}")
         return None
+
+def generate_subcategories(category_name):
+    """
+    Given a category name, generate 5 relevant subcategories.
+    """
+    model_name = 'models/gemini-2.0-flash-lite-001'
+    
+    prompt = f"""
+    Suggest 5 specific quiz topics or subcategories for the general category: "{category_name}".
+    Each suggestion should be interesting and distinct.
+    
+    The response must be a valid JSON object with a single key "subcategories" which is a list of objects.
+    Each subcategory object must have:
+    - "name": A short, catchy name for the topic.
+    - "description": A brief one-sentence description.
+    
+    Do not include any other text or markdown formatting. Just the raw JSON.
+    """
+
+    try:
+        model = genai.GenerativeModel(model_name,
+                                      generation_config={"response_mime_type": "application/json"})
+        
+        response = model.generate_content(prompt)
+        data = json.loads(response.text)
+        
+        if "subcategories" in data:
+            return data["subcategories"]
+        return None
+    except Exception as e:
+        print(f"Error generating subcategories: {e}")
+        return None
+
 
 if __name__ == "__main__":
     # Test script

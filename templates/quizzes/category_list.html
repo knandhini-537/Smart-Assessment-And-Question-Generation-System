@@ -63,7 +63,7 @@
                 <div class="icon-box mx-auto">
                     <i class="fas {{ category.icon|default:'fa-folder' }}"></i>
                 </div>
-                <h4 class="fw-bold mb-2">{{ category.name }}</h4>
+                <h4 class="fw-bold mb-2 text-dark">{{ category.name }}</h4>
                 <p class="text-secondary small">{{ category.description }}</p>
             </div>
         </div>
@@ -76,8 +76,15 @@
     <div class="row">
         <div class="col-lg-8 mx-auto">
             <h3 class="fw-bold mb-4 text-center">Available Quiz Topics</h3>
-            <div id="subcategory-list" class="list-group list-group-flush shadow-sm rounded-4 overflow-hidden">
+            <div id="subcategory-list" class="list-group list-group-flush shadow-sm rounded-4 overflow-hidden mb-4">
                 <!-- Subcategories will be loaded here -->
+            </div>
+
+            <div id="ai-suggestions-container" class="text-center d-none">
+                <button id="ai-suggest-btn" class="btn btn-outline-primary rounded-pill px-4 py-2"
+                    onclick="generateAiTopics()">
+                    <i class="fas fa-magic me-2"></i>Suggest More Topics with AI
+                </button>
             </div>
         </div>
     </div>
@@ -87,7 +94,11 @@
 
 {% block extra_js %}
 <script>
+    let currentCategoryId = null;
+
     function loadSubcategories(categoryId, element) {
+        currentCategoryId = categoryId;
+        // ... (rest of the existing logic)
         // Remove active class from all cards
         document.querySelectorAll('.category-card').forEach(card => card.classList.remove('active'));
         // Add active class to clicked card
@@ -124,10 +135,41 @@
 
                 // Scroll to subcategories
                 subSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                // Show AI suggestion button
+                document.getElementById('ai-suggestions-container').classList.remove('d-none');
             })
             .catch(error => {
                 console.error('Error:', error);
                 subList.innerHTML = '<div class="list-group-item p-4 text-center text-danger">Failed to load topics. Please try again.</div>';
+            });
+    }
+
+    function generateAiTopics() {
+        if (!currentCategoryId) return;
+
+        const btn = document.getElementById('ai-suggest-btn');
+        const originalContent = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Thinking...';
+
+        fetch(`/quizzes/ai-suggest-topics/${currentCategoryId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Refresh subcategory list
+                    loadSubcategories(currentCategoryId, document.querySelector('.category-card.active'));
+                } else {
+                    alert('Failed to generate topics: ' + (data.message || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while generating topics.');
+            })
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
             });
     }
 </script>

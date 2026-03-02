@@ -8,6 +8,8 @@ class UserProfile(models.Model):
     bio = models.TextField(max_length=500, blank=True)
     profile_pic = models.ImageField(upload_to='profile_pics', default='default.jpg', blank=True)
     preferences = models.JSONField(default=dict, blank=True)
+    reminder_enabled = models.BooleanField(default=False)
+    reminder_time = models.TimeField(default="09:00")
 
     def __str__(self):
         return f'{self.user.username} Profile'

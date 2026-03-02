@@ -8,4 +8,5 @@ urlpatterns = [
     path('login/', user_views.login_view, name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='login'), name='logout'),
     path('profile/', user_views.profile, name='profile'),
+    path('update-reminder/', user_views.update_reminder, name='update_reminder'),
 ]

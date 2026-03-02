@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Quiz: {{ settings.subcategory_name }} - QuizMaster{% endblock %}
+{% block title %}Quiz: {{ quiz_session.subcategory.name }} - QuizMaster{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -67,6 +67,8 @@
     <div class="col-lg-8">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
+                <h5 class="fw-bold mb-0 text-dark">{{ quiz_session.subcategory.name }}</h5>
+                <p class="text-secondary small mb-2">{{ quiz_session.subcategory.category.name }}</p>
                 <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold">Question {{
                     index }} of {{ total }}</span>
             </div>
@@ -110,13 +112,39 @@
 
 {% block extra_js %}
 <script>
-    let seconds = 0;
+    const remainingTime = {{ remaining_time|default: 0 }};
+    const timerEnabled = {{ quiz_session.timer_duration|default: 0 }} > 0;
+    let seconds = remainingTime;
+    const isCountdown = timerEnabled;
+
+    function updateTimerDisplay() {
+        const displaySeconds = seconds;
+        const mins = Math.floor(Math.abs(displaySeconds) / 60);
+        const secs = Math.abs(displaySeconds) % 60;
+        const timerElement = document.getElementById('timer');
+
+        timerElement.innerHTML = `<i class="fas fa-stopwatch me-1"></i> ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+        if (isCountdown && seconds <= 60) {
+            timerElement.classList.add('text-danger');
+        }
+    }
+
     const timerInterval = setInterval(() => {
-        seconds++;
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        document.getElementById('timer').innerHTML = `<i class="fas fa-stopwatch me-1"></i> ${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        if (isCountdown) {
+            seconds--;
+            if (seconds <= 0) {
+                clearInterval(timerInterval);
+                autoSubmit();
+            }
+        } else {
+            seconds++;
+        }
+        updateTimerDisplay();
     }, 1000);
+
+    // Initial display
+    updateTimerDisplay();
 
     let answered = false;
 
@@ -149,7 +177,8 @@
 
                         // Highlight correct answer
                         buttons.forEach(b => {
-                            if (b.innerText.trim() === data.correct_answer) {
+                            const optionText = b.childNodes[0].textContent.trim();
+                            if (optionText === data.correct_answer) {
                                 b.classList.add('correct');
                             }
                         });
@@ -168,6 +197,11 @@
 
     function goToNext() {
         window.location.href = "{% url 'quizzes:play_quiz' %}";
+    }
+
+    function autoSubmit() {
+        alert("Time's up! Submitting your quiz.");
+        window.location.href = "{% url 'quizzes:quiz_results' %}";
     }
 </script>
 {% endblock %}

@@ -72,3 +72,19 @@ def login_view(request):
     else:
         form = AuthenticationForm()
     return render(request, 'users/login.html', {'form': form})
+@login_required
+def update_reminder(request):
+    if request.method == 'POST':
+        import json
+        data = json.loads(request.body)
+        enabled = data.get('enabled')
+        time_str = data.get('time')
+        
+        profile = request.user.userprofile
+        profile.reminder_enabled = enabled
+        if time_str:
+            profile.reminder_time = time_str
+        profile.save()
+        
+        return JsonResponse({'status': 'success'})
+    return JsonResponse({'status': 'error'}, status=400)
