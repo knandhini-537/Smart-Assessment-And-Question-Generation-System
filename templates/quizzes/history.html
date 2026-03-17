@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Quiz History - Quiz Buzz{% endblock %}
+
+{% block extra_css %}
+<style>
+    .filter-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+    }
+
+    .history-table-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+
+    .table thead th {
+        background-color: #f8fafc;
+        border-bottom-width: 1px;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.025em;
+        color: #64748b;
+        padding: 1rem 1.5rem;
+    }
+
+    .table tbody td {
+        padding: 1rem 1.5rem;
+        vertical-align: middle;
+    }
+
+    .badge-passed {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .badge-failed {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .difficulty-easy {
+        color: #10b981;
+    }
+
+    .difficulty-medium {
+        color: #f59e0b;
+    }
+
+    .difficulty-hard {
+        color: #ef4444;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1 class="display-6 fw-bold">Quiz History</h1>
+        <p class="text-secondary">Analyze your performance and track your growth over time.</p>
+    </div>
+    <div class="col-md-4 text-md-end d-flex align-items-center justify-content-md-end">
+        <a href="{% url 'quizzes:category_list' %}" class="btn btn-primary rounded-pill px-4">
+            <i class="fas fa-plus me-2"></i>New Quiz
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filter-card">
+    <form method="GET" action="{% url 'quizzes:quiz_history' %}" class="row g-3">
+        <div class="col-md-3">
+            <label class="form-label small fw-bold text-uppercase text-secondary">Search</label>
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-end-0"><i
+                        class="fas fa-search text-muted"></i></span>
+                <input type="text" name="search" class="form-control border-start-0" placeholder="Topic or Category..."
+                    value="{{ search_query }}">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-bold text-uppercase text-secondary">Category</label>
+            <select name="category" class="form-select" onchange="this.form.submit()">
+                <option value="">All Categories</option>
+                {% for cat in categories %}
+                {% with cat_id=cat.id|stringformat:"i" %}
+                <option value="{{ cat.id }}" {% if current_category == cat_id %}selected{% endif %}>{{ cat.name }}
+                </option>
+                {% endwith %}
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-bold text-uppercase text-secondary">Difficulty</label>
+            <select name="difficulty" class="form-select" onchange="this.form.submit()">
+                <option value="">All Difficulties</option>
+                <option value="easy" {% if current_difficulty == "easy" %}selected{% endif %}>Easy</option>
+                <option value="medium" {% if current_difficulty == "medium" %}selected{% endif %}>Medium</option>
+                <option value="hard" {% if current_difficulty == "hard" %}selected{% endif %}>Hard</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-bold text-uppercase text-secondary">Sort By</label>
+            <select name="sort" class="form-select" onchange="this.form.submit()">
+                <option value="date_desc" {% if current_sort == "date_desc" %}selected{% endif %}>Newest First</option>
+                <option value="date_asc" {% if current_sort == "date_asc" %}selected{% endif %}>Oldest First</option>
+                <option value="score_desc" {% if current_sort == "score_desc" %}selected{% endif %}>High Score</option>
+                <option value="score_asc" {% if current_sort == "score_asc" %}selected{% endif %}>Low Score</option>
+                <option value="alpha" {% if current_sort == "alpha" %}selected{% endif %}>Alphabetical</option>
+            </select>
+        </div>
+    </form>
+</div>
+
+<!-- Results Table -->
+<div class="history-table-card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Quiz Details</th>
+                    <th class="text-center">Difficulty</th>
+                    <th class="text-center">Score</th>
+                    <th class="text-center">Time</th>
+                    <th class="text-center">Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for result in page_obj %}
+                <tr>
+                    <td>
+                        <div>
+                            <h6 class="mb-1 fw-bold">{{ result.quiz_session.subcategory.name }}</h6>
+                            <small class="text-secondary">
+                                <i class="far fa-calendar-alt me-1"></i> {{ result.quiz_session.completed_at|date:"M d, Y" }}
+                            </small>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <span class="fw-medium difficulty-{{ result.quiz_session.difficulty }}">
+                            {{ result.quiz_session.difficulty|title }}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <div class="fw-bold fs-5">{{ result.percentage|floatformat:0 }}%</div>
+                        <div class="text-secondary small">{{ result.score }}/{{ result.total_questions }}</div>
+                    </td>
+                    <td class="text-center text-secondary">
+                        {{ result.time_taken }}s
+                    </td>
+                    <td class="text-center">
+                        {% if result.passed %}
+                        <span class="badge rounded-pill badge-passed px-3">Passed</span>
+                        {% else %}
+                        <span class="badge rounded-pill badge-failed px-3">Failed</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'quizzes:compare_attempts' %}?subcategory={{ result.quiz_session.subcategory.id }}"
+                                class="btn btn-sm btn-outline-info rounded-pill px-3" title="Compare attempts">
+                                <i class="fas fa-chart-bar"></i>
+                            </a>
+                            <a href="{% url 'quizzes:retake_quiz' result.quiz_session.id %}"
+                                class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="Retake Quiz">
+                                <i class="fas fa-redo"></i>
+                            </a>
+                            <a href="{% url 'quizzes:quiz_results' %}?session_id={{ result.quiz_session.id }}"
+                                class="btn btn-sm btn-outline-primary rounded-pill px-3">Details</a>
+                            <a href="{% url 'quizzes:delete_quiz' result.quiz_session.id %}?next=history"
+                                class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                onclick="return confirm('Delete this quiz record permanently?')">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-5">
+                        <div class="opacity-25 mb-3"><i class="fas fa-history fa-4x"></i></div>
+                        <h5 class="text-secondary">No quizzes found matching your filters.</h5>
+                        <p class="text-muted">Try adjusting your filters or start a new quiz.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="card-footer bg-white border-0 py-3">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-0">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link border-0 rounded-circle mx-1"
+                        href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_difficulty %}&difficulty={{ current_difficulty }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}"><i
+                            class="fas fa-chevrons-left"></i></a></li>
+                <li class="page-item"><a class="page-link border-0 rounded-circle mx-1"
+                        href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_difficulty %}&difficulty={{ current_difficulty }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}"><i
+                            class="fas fa-chevron-left"></i></a></li>
+                {% endif %}
+
+                <li class="page-item active"><span class="page-link border-0 rounded-circle mx-1">Page {{
+                        page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link border-0 rounded-circle mx-1"
+                        href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_difficulty %}&difficulty={{ current_difficulty }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}"><i
+                            class="fas fa-chevron-right"></i></a></li>
+                <li class="page-item"><a class="page-link border-0 rounded-circle mx-1"
+                        href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_category %}&category={{ current_category }}{% endif %}{% if current_difficulty %}&difficulty={{ current_difficulty }}{% endif %}{% if current_sort %}&sort={{ current_sort }}{% endif %}"><i
+                            class="fas fa-chevrons-right"></i></a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

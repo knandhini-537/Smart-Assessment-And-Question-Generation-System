@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Performance Comparison - Quiz Buzz{% endblock %}
+
+{% block extra_css %}
+<style>
+    .comparison-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    .stat-pill {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 1rem;
+        text-align: center;
+        border: 1px solid #e2e8f0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'quizzes:quiz_history' %}">History</a></li>
+                <li class="breadcrumb-item active">Comparison</li>
+            </ol>
+        </nav>
+        <h1 class="display-6 fw-bold">Performance Breakdown</h1>
+        <p class="text-secondary text-uppercase fw-bold small">{{ subcategory.category.name }} &bull; {{ subcategory.name }}</p>
+    </div>
+    <div class="col-md-4 text-md-end">
+        <a href="{% url 'quizzes:category_list' %}" class="btn btn-primary rounded-pill px-4">New Attempt</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="comparison-card">
+            <h5 class="fw-bold mb-4"><i class="fas fa-chart-line text-primary me-2"></i> Score Progression</h5>
+            <div style="height: 300px;">
+                <canvas id="scoreChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="comparison-card">
+            <h5 class="fw-bold mb-4"><i class="fas fa-stopwatch text-primary me-2"></i> Time Efficiency (Seconds)</h5>
+            <div style="height: 300px;">
+                <canvas id="timeChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="comparison-card h-100">
+            <h5 class="fw-bold mb-4">Attempt Summary</h5>
+            <div class="d-grid gap-3">
+                {% for result in results %}
+                <div class="stat-pill">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="small text-secondary">{{ result.quiz_session.completed_at|date:"M d, Y" }}</span>
+                        <span class="badge {% if result.passed %}bg-success{% else %}bg-danger{% endif %} rounded-pill">
+                            {{ result.percentage|floatformat:0 }}%
+                        </span>
+                    </div>
+                    <div class="fw-bold">{{ result.quiz_session.difficulty|title }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const labels = {{ labels|safe }};
+    
+    // Score Chart
+    new Chart(document.getElementById('scoreChart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Score %',
+                data: {{ scores|safe }},
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 6,
+                pointHoverRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { min: 0, max: 100 } }
+        }
+    });
+
+    // Time Chart
+    new Chart(document.getElementById('timeChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Time Taken (s)',
+                data: {{ times|safe }},
+                backgroundColor: '#10b981',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+</script>
+{% endblock %}

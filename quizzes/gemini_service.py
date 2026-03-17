@@ -18,7 +18,7 @@ def generate_quiz_questions(topic, difficulty, count):
     Count: Number of questions
     """
     
-    model_name = 'models/gemini-2.0-flash-lite-001'
+    model_name = 'models/gemini-flash-latest'
     
     prompt = f"""
     Generate a quiz about {topic}.
@@ -33,6 +33,7 @@ def generate_quiz_questions(topic, difficulty, count):
     - "explanation": A short explanation of why the answer is correct.
     
     Do not include any other text or markdown formatting in your response. Just the raw JSON.
+    Important: Do NOT include question numbers in the "text" field.
     """
 
     try:
@@ -83,7 +84,7 @@ def generate_subcategories(category_name):
     """
     Given a category name, generate 5 relevant subcategories.
     """
-    model_name = 'models/gemini-2.0-flash-lite-001'
+    model_name = 'models/gemini-flash-latest'
     
     prompt = f"""
     Suggest 5 specific quiz topics or subcategories for the general category: "{category_name}".

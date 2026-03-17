@@ -9,7 +9,7 @@ api_key = os.getenv("GOOGLE_API_KEY")
 genai.configure(api_key=api_key)
 
 def test_generation():
-    model_name = 'models/gemini-2.0-flash-lite-001'
+    model_name = 'models/gemini-flash-latest'
     prompt = "Generate a quiz about Python. 2 questions. Return JSON with 'questions' key."
     
     try:

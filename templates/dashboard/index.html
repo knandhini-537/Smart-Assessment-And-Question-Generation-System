@@ -1,166 +1,369 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% load static %}
 
-{% block title %}Dashboard - QuizMaster{% endblock %}
+{% block title %}Dashboard - Quiz Buzz{% endblock %}
 
-{% block extra_js %}
-<script>
-    function updateReminder() {
-        const enabled = document.getElementById('reminderSwitch').checked;
-        const time = document.getElementById('reminderTime').value;
-        const timeContainer = document.getElementById('timeContainer');
-
-        if (enabled) {
-            timeContainer.classList.remove('opacity-50');
-        } else {
-            timeContainer.classList.add('opacity-50');
-        }
-
-        fetch("{% url 'update_reminder' %}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}'
-            },
-            body: JSON.stringify({
-                enabled: enabled,
-                time: time
-            })
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status !== 'success') {
-                    console.error('Failed to update reminder');
-                }
-            })
-            .catch(error => console.error('Error:', error));
+{% block extra_css %}
+<style>
+    :root {
+        --glass-bg: rgba(255, 255, 255, 0.7);
+        --glass-border: rgba(255, 255, 255, 0.2);
     }
-</script>
+
+    .welcome-section {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        padding: 3rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(79, 70, 229, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .welcome-section::after {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 300px;
+        height: 300px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    .stat-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(10px);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        height: 100%;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .bg-soft-primary {
+        background: #e0e7ff;
+        color: #4338ca;
+    }
+
+    .bg-soft-success {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .bg-soft-warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .chart-container {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+        height: 350px;
+    }
+
+    .activity-card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .activity-item {
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #f3f4f6;
+        transition: background 0.2s;
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-item:hover {
+        background: #f9fafb;
+    }
+
+    .badge-passed {
+        background: #d1fae5;
+        color: #065f46;
+        font-weight: 600;
+    }
+
+    .badge-failed {
+        background: #fee2e2;
+        color: #991b1b;
+        font-weight: 600;
+    }
+
+    .badge-incomplete {
+        background: #f3f4f6;
+        color: #4b5563;
+        font-weight: 600;
+    }
+
+    .quick-action-btn {
+        border-radius: 12px;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+    .section-title {
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="row mb-5">
+<div class="row">
     <div class="col-12">
-        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="row g-0">
-                <div class="col-lg-8 p-4 p-lg-5">
-                    <h1 class="display-4 fw-bold text-dark mb-3">Welcome 😊, {{ user.username }}!</h1>
-                    <p class="lead text-secondary mb-4">Sharpen your skills with our latest quizzes and track your
-                        progress in real-time.</p>
-                    <div class="d-flex flex-wrap gap-3">
-                        <a href="{% url 'quizzes:category_list' %}"
-                            class="btn btn-primary btn-lg px-4 rounded-pill shadow-sm">
-                            <i class="fas fa-play me-2"></i>Browse Quizzes
-                        </a>
-                        <a href="{% url 'profile' %}" class="btn btn-outline-secondary btn-lg px-4 rounded-pill">
-                            <i class="fas fa-user-edit me-2"></i>My Profile
-                        </a>
-                    </div>
-                </div>
-                <div
-                    class="col-lg-4 d-none d-lg-flex align-items-center justify-content-center bg-primary bg-opacity-10">
-                    <i class="fas fa-rocket fa-10x text-primary opacity-25"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row g-4 mt-2">
-    <div class="col-md-4">
-        <div class="card h-100 border-0 shadow-sm rounded-4 hover-shadow transition">
-            <div class="card-body p-4 text-center">
-                <div class="bg-primary bg-opacity-10 p-3 rounded-circle d-inline-block mb-3">
-                    <i class="fas fa-book-open fa-2x text-primary"></i>
-                </div>
-                <h5 class="card-title fw-bold">Available Quizzes</h5>
-                <p class="card-text text-secondary">Explore new topics and test your knowledge with our curated quizzes.
-                </p>
-                <a href="{% url 'quizzes:category_list' %}"
-                    class="btn btn-link text-primary fw-bold text-decoration-none mt-auto">
-                    Go to Quizzes <i class="fas fa-chevron-right ms-1 small"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card h-100 border-0 shadow-sm rounded-4 hover-shadow transition">
-            <div class="card-body p-4 text-center">
-                <div class="bg-success bg-opacity-10 p-3 rounded-circle d-inline-block mb-3">
-                    <i class="fas fa-chart-line fa-2x text-success"></i>
-                </div>
-                <h5 class="card-title fw-bold">My Progress</h5>
-                <p class="card-text text-secondary">Visualize your achievements and identify areas for improvement.</p>
-                <a href="{% url 'quizzes:user_progress' %}"
-                    class="btn btn-link text-success fw-bold text-decoration-none mt-auto">
-                    View Status <i class="fas fa-chevron-right ms-1 small"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card h-100 border-0 shadow-sm rounded-4 hover-shadow transition">
-            <div class="card-body p-4 text-center">
-                <div class="bg-info bg-opacity-10 p-3 rounded-circle d-inline-block mb-3">
-                    <i class="fas fa-trophy fa-2x text-info"></i>
-                </div>
-                <h5 class="card-title fw-bold">Leaderboard</h5>
-                <p class="card-text text-secondary">See how you rank against other learners in the community.</p>
-                <a href="{% url 'quizzes:leaderboard' %}"
-                    class="btn btn-link text-info fw-bold text-decoration-none mt-auto">
-                    View Rankings <i class="fas fa-chevron-right ms-1 small"></i>
+        <div class="welcome-section">
+            <h1 class="display-5 fw-bold mb-2">Welcome back, {{ user.first_name|default:user.username }}!</h1>
+            <p class="lead opacity-75 mb-4">Track your progress and improve your skills with Quiz Buzz.</p>
+            <div class="d-flex gap-2">
+                <a href="{% url 'quizzes:category_list' %}" class="btn btn-light btn-lg rounded-pill px-4 fw-bold">
+                    <i class="fas fa-play me-2"></i>Start New Quiz
                 </a>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Daily Reminder Widget -->
+<div class="row g-4 mb-5">
+    <!-- Stat Cards -->
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon bg-soft-primary">
+                <i class="fas fa-tasks"></i>
+            </div>
+            <h3 class="h4 text-secondary mb-1">Quizzes Taken</h3>
+            <h2 class="fw-bold mb-0">{{ total_quizzes }}</h2>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon bg-soft-success">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h3 class="h4 text-secondary mb-1">Average Score</h3>
+            <h2 class="fw-bold mb-0">{{ avg_score }}%</h2>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card">
+            <div class="stat-icon bg-soft-warning">
+                <i class="fas fa-medal"></i>
+            </div>
+            <h3 class="h4 text-secondary mb-1">Best Score</h3>
+            <h2 class="fw-bold mb-0">{{ best_score }}%</h2>
+        </div>
+    </div>
+</div>
+
 <div class="row mt-4">
-    <div class="col-12">
-        <div class="card border-0 shadow-sm rounded-4 bg-white p-4">
-            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                <div class="d-flex align-items-center">
-                    <div class="bg-warning bg-opacity-10 p-3 rounded-circle me-3">
-                        <i class="fas fa-bell text-warning fs-4"></i>
-                    </div>
-                    <div>
-                        <h5 class="fw-bold mb-1">Daily Quiz Reminder</h5>
-                        <p class="text-secondary small mb-0">Get notified daily to keep your streak alive!</p>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center gap-3">
-                    <div class="form-check form-switch fs-4">
-                        {% if profile.reminder_enabled %}
-                        <input class="form-check-input" type="checkbox" role="switch" id="reminderSwitch" checked
-                            onchange="updateReminder()">
-                        {% else %}
-                        <input class="form-check-input" type="checkbox" role="switch" id="reminderSwitch"
-                            onchange="updateReminder()">
-                        {% endif %}
-                    </div>
-                    <div class="d-flex align-items-center {% if not profile.reminder_enabled %}opacity-50{% endif %}"
-                        id="timeContainer">
-                        <input type="time" class="form-control form-control-sm rounded-pill px-3" id="reminderTime"
-                            value="{{ profile.reminder_time|time:'H:i' }}" onchange="updateReminder()">
-                    </div>
-                </div>
-            </div>
+    <!-- Charts -->
+    <div class="col-lg-8">
+        <h4 class="section-title"><i class="fas fa-chart-area text-primary"></i> Score Trends</h4>
+        <div class="chart-container">
+            <canvas id="scoreTrendChart"></canvas>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <h4 class="section-title"><i class="fas fa-chart-pie text-primary"></i> Categories</h4>
+        <div class="chart-container">
+            <canvas id="categoryDistributionChart"></canvas>
         </div>
     </div>
 </div>
 
-<style>
-    .hover-shadow {
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
+<div class="row mt-4 g-4">
+    <!-- Recent Activity -->
+    <div class="col-lg-7">
+        <h4 class="section-title"><i class="fas fa-history text-primary"></i> Recent Quizzes</h4>
+        <div class="card activity-card">
+            <div class="card-body p-0">
+                {% if recent_quizzes %}
+                {% for result in recent_quizzes %}
+                <div class="activity-item d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="mb-1 fw-bold">{{ result.quiz_session.subcategory.name }}</h6>
+                        <small class="text-secondary">
+                            <i class="far fa-calendar-alt me-1"></i> {{ result.quiz_session.completed_at|date:"M d, Y" }}
+                        </small>
+                    </div>
+                    <div class="text-end d-flex align-items-center gap-2">
+                        <span
+                            class="badge rounded-pill {% if result.passed %}badge-passed{% else %}badge-failed{% endif %} p-2 px-3">
+                            {{ result.percentage }}%
+                        </span>
+                        <a href="{% url 'quizzes:quiz_results' %}?session_id={{ result.quiz_session.id }}" 
+                           class="text-primary opacity-50 hover-opacity-100 me-2" title="View Details">
+                            <i class="fas fa-external-link-alt"></i>
+                        </a>
+                        <a href="{% url 'quizzes:delete_quiz' result.quiz_session.id %}" 
+                           class="text-danger opacity-50 hover-opacity-100"
+                           onclick="return confirm('Delete this quiz record?')">
+                            <i class="fas fa-trash-alt"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="p-5 text-center text-secondary">
+                    <i class="fas fa-info-circle fa-3x mb-3 opacity-25"></i>
+                    <p>No quiz activity yet. Start your first quiz!</p>
+                </div>
+                {% endif %}
+            </div>
+            {% if recent_quizzes %}
+            <div class="card-footer bg-transparent border-0 text-center p-3">
+                <a href="{% url 'quizzes:quiz_history' %}" class="text-primary text-decoration-none fw-bold">View All
+                    History <i class="fas fa-arrow-right ms-1"></i></a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
 
-    .hover-shadow:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 1rem 3rem rgba(0, 0, 0, .175) !important;
-    }
+    <!-- Incomplete Quizzes -->
+    <div class="col-lg-5">
+        <h4 class="section-title"><i class="fas fa-clock text-primary"></i> Incomplete Quizzes</h4>
+        <div class="card activity-card">
+            <div class="card-body p-0">
+                {% if incomplete_quizzes %}
+                {% for session in incomplete_quizzes %}
+                <div class="activity-item">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div>
+                            <h6 class="mb-0 fw-bold">{{ session.subcategory.name }}</h6>
+                            <small class="text-secondary">Started {{ session.created_at|timesince }} ago</small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'quizzes:resume_quiz' session.id %}"
+                                class="btn btn-primary btn-sm rounded-pill px-3">Resume</a>
+                            <a href="{% url 'quizzes:abandon_quiz' session.id %}"
+                                class="btn btn-outline-danger btn-sm rounded-pill"
+                                onclick="return confirm('Are you sure you want to abandon this quiz?')">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="progress" style="height: 6px; border-radius: 3px;">
+                        <div class="progress-bar" role="progressbar" style="width: {{ session.get_progress }}%"
+                            aria-valuenow="{{ session.get_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="text-end mt-1">
+                        <small class="text-muted fw-bold">{{ session.get_progress }}% Complete</small>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="p-5 text-center text-secondary">
+                    <i class="fas fa-check-circle fa-3x mb-3 opacity-25"></i>
+                    <p>All caught up! No incomplete quizzes.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
 
-    .transition {
-        transition: all 0.3s ease;
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Category Distribution Chart
+    const ctxCategory = document.getElementById('categoryDistributionChart').getContext('2d');
+    new Chart(ctxCategory, {
+        type: 'doughnut',
+        data: {
+            labels: {{ category_labels| safe }},
+        datasets: [{
+            data: {{ category_counts| safe }},
+        backgroundColor: [
+            '#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#3b82f6'
+        ],
+        borderWidth: 0,
+        spacing: 4
+            }]
+        },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    usePointStyle: true,
+                    padding: 20
+                }
+            }
+        },
+        cutout: '70%'
     }
-</style>
+    });
+
+    // Score Trend Chart
+    const ctxTrend = document.getElementById('scoreTrendChart').getContext('2d');
+    const gradient = ctxTrend.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(79, 70, 229, 0.4)');
+    gradient.addColorStop(1, 'rgba(79, 70, 229, 0)');
+
+    new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+            labels: {{ trend_labels| safe }},
+        datasets: [{
+            label: 'Score Percentage',
+            data: {{ trend_scores| safe }},
+        borderColor: '#4f46e5',
+        backgroundColor: gradient,
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#4f46e5',
+        pointRadius: 4,
+        pointHoverRadius: 6
+            }]
+        },
+        options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100,
+                grid: { color: '#f3f4f6' }
+            },
+            x: {
+                grid: { display: false }
+            }
+        }
+    }
+    });
+</script>
 {% endblock %}

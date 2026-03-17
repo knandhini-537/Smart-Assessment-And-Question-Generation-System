@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Preparing Your Quiz - QuizMaster{% endblock %}
+{% block title %}Preparing Your Quiz - Quiz Buzz{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -107,30 +107,43 @@
     <p class="text-secondary lead mb-4">Our AI is brainstorming the perfect questions for <span
             class="text-primary fw-bold">{{ settings.subcategory_name }}</span>.</p>
 
+    <div class="progress mb-4 border shadow-sm" style="height: 12px; width: 300px; background-color: rgba(79, 70, 229, 0.1); border-radius: 6px;">
+        <div id="generation-progress" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+             role="progressbar" style="width: 0%; transition: width 0.5s ease-in-out;"></div>
+    </div>
+
     <div class="card border-0 shadow-sm bg-light p-3 rounded-pill px-4">
         <span class="status-text m-0" id="loading-status">Constructing prompts<span class="progress-dots"></span></span>
     </div>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
 <script>
     const statuses = [
-        "Constructing prompts",
-        "Connecting to AI Engine",
-        "Generating questions",
-        "Structuring options",
-        "Verifying answers",
-        "Finalizing quiz"
+        { text: "Constructing prompts", progress: 10 },
+        { text: "Connecting to AI Engine", progress: 25 },
+        { text: "Brainstorming questions", progress: 45 },
+        { text: "Structuring options", progress: 65 },
+        { text: "Verifying accuracy", progress: 85 },
+        { text: "Finalizing quiz", progress: 95 }
     ];
     let statusIndex = 0;
     const statusEl = document.getElementById('loading-status');
+    const progressBar = document.getElementById('generation-progress');
 
-    setInterval(() => {
-        statusIndex = (statusIndex + 1) % statuses.length;
-        statusEl.innerHTML = `${statuses[statusIndex]}<span class="progress-dots"></span>`;
-    }, 2500);
+    // Update status and progress bar
+    const updateProgress = () => {
+        if (statusIndex < statuses.length) {
+            const current = statuses[statusIndex];
+            statusEl.innerHTML = `${current.text}<span class="progress-dots"></span>`;
+            progressBar.style.width = `${current.progress}%`;
+            statusIndex++;
+        }
+    };
+
+    updateProgress(); // Initial call
+    const statusInterval = setInterval(updateProgress, 3000);
 
     // Trigger generation
     window.onload = function () {
@@ -138,13 +151,18 @@
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    window.location.href = "{% url 'quizzes:play_quiz' %}";
+                    progressBar.style.width = "100%";
+                    setTimeout(() => {
+                        window.location.href = "{% url 'quizzes:play_quiz' %}";
+                    }, 500);
                 } else {
+                    clearInterval(statusInterval);
                     alert('Error generating quiz: ' + (data.message || 'Unknown error'));
                     window.location.href = "{% url 'quizzes:category_list' %}";
                 }
             })
             .catch(error => {
+                clearInterval(statusInterval);
                 console.error('Error:', error);
                 alert('An unexpected error occurred.');
                 window.location.href = "{% url 'quizzes:category_list' %}";

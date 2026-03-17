@@ -15,6 +15,13 @@ urlpatterns = [
     path('submit-answer/', views.submit_answer, name='submit_answer'),
     path('results/', views.quiz_results, name='quiz_results'),
     path('progress/', views.user_progress, name='user_progress'),
+    path('history/', views.quiz_history, name='quiz_history'),
     path('leaderboard/', views.leaderboard, name='leaderboard'),
     path('ai-suggest-topics/<int:category_id>/', views.ai_generate_topics, name='ai_suggest_topics'),
+    path('resume/<int:session_id>/', views.resume_quiz, name='resume_quiz'),
+    path('abandon/<int:session_id>/', views.abandon_quiz, name='abandon_quiz'),
+    path('retake/<int:session_id>/', views.retake_quiz, name='retake_quiz'),
+    path('compare/', views.compare_attempts, name='compare_attempts'),
+    path('leaderboard/toggle/', views.toggle_leaderboard, name='toggle_leaderboard'),
+    path('delete/<int:session_id>/', views.delete_quiz, name='delete_quiz'),
 ]

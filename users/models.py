@@ -10,6 +10,7 @@ class UserProfile(models.Model):
     preferences = models.JSONField(default=dict, blank=True)
     reminder_enabled = models.BooleanField(default=False)
     reminder_time = models.TimeField(default="09:00")
+    show_on_leaderboard = models.BooleanField(default=True)
 
     def __str__(self):
         return f'{self.user.username} Profile'

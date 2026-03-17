@@ -36,6 +36,18 @@ class QuizSession(models.Model):
     def __str__(self):
         return f"Quiz Session - {self.user.username} - {self.subcategory.name}"
 
+    @property
+    def get_progress(self):
+        total = self.questions.count()
+        if total == 0:
+            return 0
+        completed = self.user_answers.count()
+        return int((completed / total) * 100)
+
+    @property
+    def is_incomplete(self):
+        return not hasattr(self, 'result')
+
 class Question(models.Model):
     quiz_session = models.ForeignKey(QuizSession, related_name='questions', on_delete=models.CASCADE)
     text = models.TextField()

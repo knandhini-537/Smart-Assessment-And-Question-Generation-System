@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Quiz Results - QuizMaster{% endblock %}
+{% block title %}Quiz Results - Quiz Buzz{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -118,10 +118,20 @@
                     {% endif %}
                 </div>
 
-                <h2 class="fw-bold mb-4">{% if result.passed %}Congratulations!{% else %}Keep Practicing!{% endif %}
-                </h2>
-                <p class="text-secondary lead mb-5">You've completed the quiz on <span class="text-primary fw-bold">{{
-                        session.subcategory.name }}</span>.</p>
+                <h2 class="fw-bold mb-4">{% if result.passed %}Congratulations!{% else %}Keep Practicing!{% endif %}</h2>
+                
+                {% if motivation_message %}
+                <div class="alert alert-success border-0 rounded-4 py-3 mb-4 shadow-sm animate__animated animate__bounceIn">
+                    <h4 class="mb-0 fw-bold">{{ motivation_message }}</h4>
+                    {% if improvement_percentage > 0 %}
+                    <small class="text-secondary opacity-75">
+                        You improved by {{ improvement_percentage|floatformat:0 }}% since your last attempt!
+                    </small>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <p class="text-secondary lead mb-5">You've completed the quiz on <span class="text-primary fw-bold">{{ session.subcategory.name }}</span>.</p>
 
                 <div class="row align-items-center mb-5">
                     <div class="col-md-5">
@@ -155,11 +165,15 @@
                 </div>
 
                 <div class="d-flex flex-column flex-md-row gap-3 justify-content-center mb-5">
-                    <a href="{% url 'quizzes:quiz_setup' session.subcategory.id %}"
+                    <a href="{% url 'quizzes:retake_quiz' session.id %}"
                         class="btn btn-primary px-5 py-3 rounded-pill fw-bold">
                         <i class="fas fa-redo me-2"></i> Retake Quiz
                     </a>
-                    <a href="{% url 'quizzes:category_list' %}" class="btn btn-light px-5 py-3 rounded-pill fw-bold">
+                    <a href="{% url 'quizzes:compare_attempts' %}?subcategory={{ session.subcategory.id }}"
+                        class="btn btn-info text-white px-5 py-3 rounded-pill fw-bold">
+                        <i class="fas fa-chart-bar me-2"></i> Compare
+                    </a>
+                    <a href="{% url 'dashboard' %}" class="btn btn-light px-5 py-3 rounded-pill fw-bold">
                         <i class="fas fa-home me-2"></i> Dashboard
                     </a>
                 </div>
