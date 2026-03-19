@@ -29,7 +29,7 @@ SECRET_KEY = "django-insecure-7td0v*_e52cnf#7-(bt3@e+v_wn6dth44zn+97s)j^ux9oikjt
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["smart-assessment-and-question-generation-a0pt.onrender.com"]
 
 
 # Application definition
